@@ -1,0 +1,31 @@
+---
+- name: Automatizacion de configuracion y respaldo en CSR1000v
+  hosts: routers
+  gather_facts: no
+  tasks:
+
+    - name: Task 1 - Configurar Interfaz Loopback 33 con IPv6
+      cisco.ios.ios_interfaces:
+        config:
+          - name: Loopback33
+            description: Creada via Ansible - Item 6
+            enabled: true
+      register: int_result
+
+    - name: Task 1.2 - Asignar Direcciones IPv6 (Global y Link-Local)
+      cisco.ios.ios_config:
+        lines:
+          - ipv6 address 3001:ABCD:ABCD:1::1/128
+          - ipv6 address FE80::1 link-local
+        parents: interface Loopback33
+
+    - name: Task 2 - Obtener la running-config actual
+      cisco.ios.ios_command:
+        commands: show running-config
+      register: running_cfg
+
+    - name: Task 2.2 - Guardar el respaldo en un archivo local
+      copy:
+        content: "{{ running_cfg.stdout[0] }}"
+        dest: "./respaldo_csr1000v.txt"
+      delegate_to: localhost

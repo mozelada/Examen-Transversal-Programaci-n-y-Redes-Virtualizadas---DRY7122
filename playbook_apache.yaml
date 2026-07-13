@@ -1,0 +1,29 @@
+---
+- name: Instalacion y modificacion de puerto para servicio Apache
+  hosts: localhost
+  become: yes  # Ejecutar comandos como administrador (sudo)
+  tasks:
+
+    - name: Task 3 - Instalar el servicio Apache2
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: Task 3.2 - Modificar el puerto de escucha a 9999 en ports.conf
+      lineinfile:
+        path: /etc/apache2/ports.conf
+        regexp: '^Listen 80'
+        line: 'Listen 9999'
+
+    - name: Task 3.3 - Modificar el puerto en el sitio virtual por defecto
+      lineinfile:
+        path: /etc/apache2/sites-available/000-default.conf
+        regexp: '<VirtualHost \*:80>'
+        line: '<VirtualHost *:9999>'
+
+    - name: Task 3.4 - Reiniciar el servicio Apache para aplicar cambios
+      service:
+        name: apache2
+        state: restarted
+        enabled: yes
